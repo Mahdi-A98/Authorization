@@ -1,0 +1,6 @@
+venv
+.env
+Authorization/.env
+Authorization/celery.log
+Authorization
+dump.rdb
