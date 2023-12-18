@@ -57,3 +57,6 @@ def delete_old_user_tokens(username):
     user_tokens_jtis = databases['redis_db'].keys(username + "*")
     delete_jti_from_cache(user_tokens_jtis)
 
+def delete_old_user_login_tokens(username):
+    user_tokens_jtis = databases['redis_db'].keys(username + "@login@" +"*")
+    delete_jti_from_cache(user_tokens_jtis)
