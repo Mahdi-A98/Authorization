@@ -46,3 +46,9 @@ def create_jwt(user_data, expiration_hours, jti=None):
     jwt_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
     return jwt_token
 
+def delete_jti_from_cache(jtis:list):
+    if len(jtis) < 1:
+        return "No jti to delete"
+    result = databases['redis_db'].delete(*jtis)
+    return result
+
