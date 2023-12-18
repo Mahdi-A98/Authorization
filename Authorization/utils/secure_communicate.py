@@ -12,4 +12,12 @@ class Encryption:
 
     def __init__(self, service_shared_key:str, code_keys:dict=None):
         self.service_shared_key = service_shared_key
-        self.code_keys = code_keys or {}
+    @staticmethod
+    def Encode(key:str, message:str):
+        assert isinstance(message, str), "message should be string  "           
+        enc=[]
+        for i in range(len(message)):
+                key_c = key[i % len(key)]
+                enc.append(chr((ord(message[i]) + ord(key_c)) % 256))
+        return base64.urlsafe_b64encode("".join(enc).encode(errors="ignore")).decode(errors="ignore") 
+    
