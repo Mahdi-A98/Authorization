@@ -36,3 +36,13 @@ def store_in_cash(jwt_token):
     else:
         raise error
 
+def create_jwt(user_data, expiration_hours, jti=None):
+    payload = {
+        'user_identifier': user_data.get('username') + "@sep@" + user_data.get("email"),
+        'exp': int((datetime.now() + timedelta(hours=expiration_hours)).timestamp()),
+        'iat': datetime.now().timestamp(),
+        'jti': user_data.get("username") + '@login@' + (jti or uuid.uuid4().hex),
+    }
+    jwt_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+    return jwt_token
+
