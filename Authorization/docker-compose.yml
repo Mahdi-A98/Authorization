@@ -1,0 +1,53 @@
+services:
+  redis:
+      image: redis:alpine
+      ports:
+          - 6379:6379
+      volumes:
+          - redis-data:/data
+      networks:
+          - auth_net
+
+  app:
+    build: .
+    container_name: authorization_app
+    command: uvicorn auth_net:app --host 0.0.0.0 --port 8004 --reload 
+    ports:
+      - 8004:8004
+    volumes:
+      - .:/code
+    depends_on:
+      - redis
+    networks:
+      - auth_net
+
+  celery:
+    build: .
+    command: celery -A utils.celery_tasks.celery worker --loglevel=info -E
+    volumes:
+      - .:/code
+
+    depends_on:
+      - app
+      - redis
+    networks:
+      - auth_net
+
+  flower:
+    image: mher/flower:0.9.7
+    command: ['flower', '--broker=redis://redis:6379', '--port=5555']
+    expose:  # new
+      - 5555
+    depends_on:
+      - redis
+    networks:
+      - auth_net
+
+networks:
+  auth_net:
+    name: auth_net
+    
+
+volumes:
+  redis-data:
+    driver: local
