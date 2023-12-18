@@ -12,6 +12,18 @@ class Encryption:
 
     def __init__(self, service_shared_key:str, code_keys:dict=None):
         self.service_shared_key = service_shared_key
+    def encrypt_data(self, data, jti=None, exp=10):
+        data = json.dumps(data)
+        key_name = list(self.code_keys.keys())[random.randint(0, len(self.code_keys.keys())-1)]
+        payload = {
+            "data": self.Encode(self.code_keys[key_name], data),
+            "key_name": key_name,
+            'exp': int((datetime.now() + timedelta(seconds=exp+100)).timestamp()),
+            'iat': datetime.now().timestamp(),
+            'jti': jti or uuid.uuid4().hex
+        }
+        token = jwt.encode(payload, self.service_shared_key, algorithm='HS256')
+        return token
     @staticmethod
     def Encode(key:str, message:str):
         assert isinstance(message, str), "message should be string  "           
