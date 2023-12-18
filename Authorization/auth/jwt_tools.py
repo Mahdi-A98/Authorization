@@ -18,3 +18,11 @@ def verify_jti(payload:dict):
         user_identifier = user_identifier.decode() if isinstance(user_identifier, bytes) else user_identifier
         return user_identifier
     return None
+
+def verify_exp(payload:dict):
+    exp = payload.get('exp')
+    return exp > datetime.now().timestamp()
+
+
+
+
