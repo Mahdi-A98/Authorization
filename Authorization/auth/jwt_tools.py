@@ -26,3 +26,13 @@ def verify_exp(payload:dict):
 
 
 
+def store_in_cash(jwt_token):
+    payload, error = decode_jwt_token(jwt_token)
+    if payload:
+        jti = payload['jti']
+        user_identifier = payload['user_identifier']
+        timeout = int(payload['exp'] - payload['iat'])
+        databases['redis_db'].setex(name=jti, value=user_identifier, time=timeout)
+    else:
+        raise error
+
