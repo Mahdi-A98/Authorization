@@ -52,3 +52,8 @@ def delete_jti_from_cache(jtis:list):
     result = databases['redis_db'].delete(*jtis)
     return result
 
+
+def delete_old_user_tokens(username):
+    user_tokens_jtis = databases['redis_db'].keys(username + "*")
+    delete_jti_from_cache(user_tokens_jtis)
+
