@@ -19,3 +19,12 @@ class RetryTask(Task):
             message = f"\n\tmessage: {self.request.retries}th Retry of task ID:{task_id}\t error:{exc}\targs{args}\tkwargs:{kwargs}\n\terror information:{einfo}\n"
             print(message)
             # celery_logger.error(msg=message)
+
+@celery.task(base=RetryTask)
+def send_email_task(email_data):
+    response = NotificationService.sinc_send_email_notification(email_data)
+    # async def in_celery_send_email():
+    #     ntf_response = await NotificationService.send_email_notification(email_data)
+    #     return ntf_response
+    # response = asyncio.run(in_celery_send_email())
+    return response.status_code
