@@ -48,3 +48,25 @@ async def register(user_data: UserRegister = Body(...)):
         return JSONResponse("Registered successfully")
     return JSONResponse(register_response.json(), status_code=register_response.status_code)
 
+
+@router.post(
+    "/login",
+    response_description="login with credentials",
+    status_code=status.HTTP_200_OK,
+)
+async def login(login_data: UserLogin = Body(...)):
+
+    data = login_data.model_dump(by_alias=True, exclude=["id", "password"])
+    data['password'] = login_data.password.get_secret_value()
+
+    login_response = await AccountService.login_user(data) # TODO
+    if login_response.status_code == 200:
+        new_user = UserLogin(**login_response.json())
+        access_token, refresh_token = await renew_tokens(new_user.username, new_user.email)
+        if new_user.email:
+            message = f"Dear {new_user.username} Welcome to our podcast website."
+            subject = "Welcome to Podcast"
+            await send_email(new_user.email, new_user.username, subject, message)
+        return JSONResponse({"data": {"access-token":access_token, "refresh-token":refresh_token}, "message":"login successfully"}, status_code=status.HTTP_200_OK)
+    return JSONResponse(login_response.json(), status_code=login_response.status_code)
+
