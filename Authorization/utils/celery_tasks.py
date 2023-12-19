@@ -1,3 +1,19 @@
+# In the name of GOD
+
+from celery import Celery, shared_task, Task
+import asyncio
+
+from config import settings
+from services.notification_service import NotificationService
+
+
+
+# from .celery_async_tools import async_task
+
+celery = Celery(__name__)
+celery.conf.broker_url = settings.CELERY_BROKER_URL
+celery.conf.result_backend = settings.CELERY_RESULT_BACKEND
+
 class RetryTask(Task):
     autoretry_for = (Exception,)
     retry_kwargs = {'max_retries': 5}
