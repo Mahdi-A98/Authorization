@@ -26,3 +26,25 @@ router = APIRouter(
 
 # ServiceDep = typing.Annotated[str, Depends(get_service)]
 LoginDep = typing.Annotated[str, Depends(check_login_status)]
+
+@router.post(
+    "/register",
+    response_description="Register new User",
+    status_code=status.HTTP_201_CREATED,
+)
+async def register(user_data: UserRegister = Body(...)):
+
+    data = user_data.model_dump(by_alias=True, exclude=["id", "password"])
+    data['password'] = user_data.password.get_secret_value()
+    register_response = await AccountService.register_user(data) # TODO
+    if register_response.status_code == 201:
+        new_user = UserRegister(**register_response.json())
+        if new_user.email:
+            otp = EmailAuthentication.create_and_store_otp(new_user.email)
+            message = f"Dear {new_user.username} Welcome to our podcast website. Your email verfication code is {otp}"
+            subject = "Welcome to Podcast"
+            await send_email(new_user.email, new_user.username, subject, message) 
+            return JSONResponse("Registered successfully and email verification code has sent to your email.")
+        return JSONResponse("Registered successfully")
+    return JSONResponse(register_response.json(), status_code=register_response.status_code)
+
