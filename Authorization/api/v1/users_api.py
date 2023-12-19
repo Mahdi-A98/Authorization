@@ -116,3 +116,15 @@ async def verify_email(email_verification_data:dict= Body(...)):
         return mapped_result.get(result.status_code)
     return JSONResponse("Invalid otp", status_code=status.HTTP_401_UNAUTHORIZED)
 
+
+@router.post(
+    "/send_login_otp",
+    response_description="login with email otp",
+    status_code=status.HTTP_200_OK,
+)
+async def send_login_otp(email_verification_data:dict= Body(...)):
+    email = email_verification_data.get("email")
+    otp = EmailAuthentication.create_and_store_otp(email=email, prefix_key="login_verification@")
+    message = f"podcast website. Your login code is {otp}"
+    await send_email(email=email, subject="login code", message=message)
+    return JSONResponse("login code has sent to your email", status_code=status.HTTP_200_OK)
