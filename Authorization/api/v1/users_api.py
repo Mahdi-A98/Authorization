@@ -128,3 +128,22 @@ async def send_login_otp(email_verification_data:dict= Body(...)):
     message = f"podcast website. Your login code is {otp}"
     await send_email(email=email, subject="login code", message=message)
     return JSONResponse("login code has sent to your email", status_code=status.HTTP_200_OK)
+
+
+@router.post(
+    "/login_with_otp",
+    response_description="login with otp")
+async def verify_login_code(email_login_data:dict= Body(...)):
+    email = email_login_data.get("email")
+    otp = email_login_data.get("otp")
+    account_response = await AccountService.user_profile({"email":email})
+    if account_response.status_code == 404:
+        return JSONResponse("User with this email doesn't exist", status_code=status.HTTP_404_NOT_FOUND)
+    user_profile = account_response.json()
+    user_profile = account_response.json().get("data")
+    is_login_code_verified  = EmailAuthentication.verify_otp(email, otp, prefix_key="login_verification@")
+    if is_login_code_verified and user_profile.get("is_email_verified"):
+        access_token, refresh_token = await renew_tokens(user_profile.get("username"), user_profile.get("email"))
+        return JSONResponse({"data": {"access-token":access_token, "refresh-token":refresh_token}, "message":"login successfully"}, status_code=status.HTTP_200_OK)
+    return JSONResponse("Invalid otp", status_code=status.HTTP_401_UNAUTHORIZED)
+
