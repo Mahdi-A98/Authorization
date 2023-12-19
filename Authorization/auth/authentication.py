@@ -47,3 +47,39 @@ class JWTAuthentication:
         
         username, email = user_identifier.split("@sep@")
         return username, email
+
+    @staticmethod
+    def create_access_token(user_data, jti=None):
+        token = jwt_tools.create_jwt(user_data, settings.ACCESS_TOKEN_EXP , jti)
+        jwt_tools.store_in_cash(token)
+        return token
+
+    @staticmethod
+    def create_refresh_token(user_data, jti=None):
+        token = jwt_tools.create_jwt( user_data, settings.REFRESH_TOKEN_EXP, jti)
+        jwt_tools.store_in_cash(token)
+        return token
+
+    @staticmethod
+    def delete_old_user_tokens(username):
+        jwt_tools.delete_old_user_tokens(username)
+
+    @staticmethod
+    def delete_old_user_login_tokens(username):
+        jwt_tools.delete_old_user_login_tokens(username)
+
+
+class EmailAuthentication:
+    @classmethod
+    def create_and_store_otp(cls, email, prefix_key=""):
+        otp = random.randint(1000,9999)
+        key = prefix_key + email
+        databases['redis_db'].setex(name=key, value=otp, time=550)
+        return otp
+
+    @classmethod
+    def verify_otp(cls, email, otp, prefix_key=""):
+        key = prefix_key + email
+        stored_otp = databases['redis_db'].get(key)
+        print("otp: ", stored_otp)
+        return stored_otp and int(stored_otp) == int(otp)
