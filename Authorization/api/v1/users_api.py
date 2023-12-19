@@ -70,3 +70,15 @@ async def login(login_data: UserLogin = Body(...)):
         return JSONResponse({"data": {"access-token":access_token, "refresh-token":refresh_token}, "message":"login successfully"}, status_code=status.HTTP_200_OK)
     return JSONResponse(login_response.json(), status_code=login_response.status_code)
 
+
+@router.post(
+    "/authorize_token",
+    response_description="authorize token",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def authorize_token(authorization_tokens:AuthorizationTokens= Body(...)):
+    access_token = authorization_tokens.access_token
+    refresh_token = authorization_tokens.refresh_token
+    username, email = JWTAuthentication.authenticate(access_token, refresh_token)
+    return JSONResponse({"data": {"username": username, "email": email}, "message":"Token Authorized successfuy"}, status_code=status.HTTP_200_OK)
+
