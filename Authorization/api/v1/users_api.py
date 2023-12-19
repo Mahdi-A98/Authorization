@@ -82,3 +82,15 @@ async def authorize_token(authorization_tokens:AuthorizationTokens= Body(...)):
     username, email = JWTAuthentication.authenticate(access_token, refresh_token)
     return JSONResponse({"data": {"username": username, "email": email}, "message":"Token Authorized successfuy"}, status_code=status.HTTP_200_OK)
 
+
+@router.post(
+    "/send_otp",
+    response_description="verify email",
+    status_code=status.HTTP_200_OK,
+)
+async def send_otp(email_verification_data:dict= Body(...)):
+    email = email_verification_data.get("email")
+    otp = EmailAuthentication.create_and_store_otp(email, prefix_key="email_verification")
+    message = f"podcast website. Your email verfication code is {otp}"
+    await send_email(email=email, subject="verify email", message=message)
+    return JSONResponse("otp has sent to your email", status_code=status.HTTP_200_OK)
