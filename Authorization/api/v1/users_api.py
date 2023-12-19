@@ -147,3 +147,11 @@ async def verify_login_code(email_login_data:dict= Body(...)):
         return JSONResponse({"data": {"access-token":access_token, "refresh-token":refresh_token}, "message":"login successfully"}, status_code=status.HTTP_200_OK)
     return JSONResponse("Invalid otp", status_code=status.HTTP_401_UNAUTHORIZED)
 
+
+@router.post(
+    "/logout",
+    response_description="logout user")
+async def logout(user_data:LoginDep):
+    username = user_data[0]
+    JWTAuthentication.delete_old_user_login_tokens(username)
+    return JSONResponse({"message": f"{username} logged out successfully"}, status_code=status.HTTP_200_OK)
