@@ -94,3 +94,25 @@ async def send_otp(email_verification_data:dict= Body(...)):
     message = f"podcast website. Your email verfication code is {otp}"
     await send_email(email=email, subject="verify email", message=message)
     return JSONResponse("otp has sent to your email", status_code=status.HTTP_200_OK)
+
+
+@router.post(
+    "/verify_email",
+    response_description="verify email",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def verify_email(email_verification_data:dict= Body(...)):
+    email = email_verification_data.get("email")
+    otp = email_verification_data.get("otp")
+    is_email_verified  = EmailAuthentication.verify_otp(email, otp, prefix_key="email_verification")
+    if is_email_verified:
+        result = await AccountService.update_user_data({"user_data": {"email":email}, "update_data": {"is_email_verified": True}}) # TODO
+        mapped_result = {
+            202:JSONResponse("Your email verified successfully", status_code=status.HTTP_202_ACCEPTED),
+            404:JSONResponse("User with this email doesn't exist", status_code=status.HTTP_404_NOT_FOUND),
+            215:JSONResponse("This email is already verified", status_code=215),
+        }
+
+        return mapped_result.get(result.status_code)
+    return JSONResponse("Invalid otp", status_code=status.HTTP_401_UNAUTHORIZED)
+
